@@ -11,7 +11,8 @@
 		"components": {
 			"minecraft:icon": "utilitycraft_nether_star_seeds",
 			"minecraft:block_placer": {
-				"block": "utilitycraft:netherstar_crop"
+				"block": "utilitycraft:nether_star_seeds",
+				"replace_block_item": true
 			},
 			"minecraft:fire_resistant": {
 				"value": true

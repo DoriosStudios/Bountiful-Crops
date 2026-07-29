@@ -155,7 +155,10 @@ async function generateRuntimeModule(crops) {
 `// Edit tools/data/bountiful_crops.json, then run the generator.\n\n` +
 `export const BOUNTIFUL_CROP_DEFINITIONS = Object.freeze(${serialized});\n\n` +
 `export const BOUNTIFUL_CROPS_BY_BLOCK = Object.freeze(Object.fromEntries(\n` +
-`  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.cropId, definition])\n` +
+`  BOUNTIFUL_CROP_DEFINITIONS.flatMap(definition => [\n` +
+`    [definition.cropId, definition],\n` +
+`    [definition.seedId, definition]\n` +
+`  ])\n` +
 `));\n\n` +
 `export const BOUNTIFUL_CROPS_BY_SEED = Object.freeze(Object.fromEntries(\n` +
 `  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.seedId, definition])\n` +
@@ -227,42 +230,73 @@ function createDropPool(drop) {
 }
 
 async function updateCropBlocks(crops) {
-  const definitionsByBlock = new Map(crops.map(crop => [crop.cropId, crop]));
+  const definitionsByLegacyBlock = new Map(crops.map(crop => [crop.cropId, crop]));
+  const definitionsByCanonicalBlock = new Map(crops.map(crop => [crop.seedId, crop]));
   const files = await collectJsonFiles(cropBlocksRoot);
-  const foundBlocks = new Set();
+  const legacyFiles = new Map();
 
   for (const filePath of files) {
     const document = JSON.parse(await readFile(filePath, "utf8"));
     const block = document["minecraft:block"];
     const identifier = block?.description?.identifier;
-    const definition = definitionsByBlock.get(identifier);
-    if (!definition) throw new Error(`Unregistered crop block: ${identifier ?? relative(projectRoot, filePath)}`);
+    if (definitionsByLegacyBlock.has(identifier)) {
+      legacyFiles.set(identifier, filePath);
+      continue;
+    }
+    if (definitionsByCanonicalBlock.has(identifier)) continue;
+    throw new Error(`Unregistered crop block: ${identifier ?? relative(projectRoot, filePath)}`);
+  }
 
-    foundBlocks.add(identifier);
-    block.components["minecraft:tick"] = {
+  for (const definition of crops) {
+    const legacyPath = legacyFiles.get(definition.cropId);
+    if (!legacyPath) throw new Error(`Missing legacy crop block: ${definition.cropId}`);
+
+    const legacyDocument = JSON.parse(await readFile(legacyPath, "utf8"));
+    const canonicalDocument = structuredClone(legacyDocument);
+    const legacyBlock = legacyDocument["minecraft:block"];
+    const canonicalBlock = canonicalDocument["minecraft:block"];
+
+    configureCropBlock(legacyBlock, definition);
+    delete legacyBlock.components["utilitycraft:crop"];
+    legacyBlock.components["utilitycraft:retrocompatibility"] = {
+      target: definition.seedId
+    };
+    legacyBlock.components["minecraft:tick"] = {
+      interval_range: [100, 100],
+      looping: true
+    };
+
+    configureCropBlock(canonicalBlock, definition);
+    canonicalBlock.description.identifier = definition.seedId;
+    delete canonicalBlock.components["utilitycraft:retrocompatibility"];
+    canonicalBlock.components["utilitycraft:crop"] = {};
+    canonicalBlock.components["minecraft:tick"] = {
       interval_range: [...definition.growthInterval],
       looping: true
     };
-    block.components["minecraft:loot"] = `loot_tables/bc/seeds/${definition.lootFile}.json`;
 
-    const placementConditions = block.components["minecraft:placement_filter"]?.conditions;
-    if (!Array.isArray(placementConditions) || !placementConditions[0]) {
-      throw new Error(`Missing placement filter: ${identifier}`);
-    }
-    placementConditions[0].block_filter = [definition.soil];
-
-    const maturePermutation = block.permutations.find(permutation =>
-      typeof permutation.condition === "string" && permutation.condition.includes("age')==5")
-    );
-    if (!maturePermutation) throw new Error(`Missing mature permutation: ${identifier}`);
-    maturePermutation.components["minecraft:loot"] = `loot_tables/bc/crops/${definition.lootFile}.json`;
-
-    await writeJson(filePath, document);
+    const canonicalFileName = `${definition.seedId.split(":")[1]}.json`;
+    await writeJson(legacyPath, legacyDocument);
+    await writeJson(join(dirname(legacyPath), canonicalFileName), canonicalDocument);
   }
+}
 
-  for (const crop of crops) {
-    if (!foundBlocks.has(crop.cropId)) throw new Error(`Missing crop block: ${crop.cropId}`);
+function configureCropBlock(block, definition) {
+  block.components["minecraft:loot"] = `loot_tables/bc/seeds/${definition.lootFile}.json`;
+
+  const placementConditions = block.components["minecraft:placement_filter"]?.conditions;
+  if (!Array.isArray(placementConditions) || !placementConditions[0]) {
+    throw new Error(`Missing placement filter: ${block.description.identifier}`);
   }
+  placementConditions[0].block_filter = [definition.soil];
+
+  const maturePermutation = block.permutations.find(permutation =>
+    typeof permutation.condition === "string" && permutation.condition.includes("age')==5")
+  );
+  if (!maturePermutation) {
+    throw new Error(`Missing mature permutation: ${block.description.identifier}`);
+  }
+  maturePermutation.components["minecraft:loot"] = `loot_tables/bc/crops/${definition.lootFile}.json`;
 }
 
 async function generateBonsaiAssets(crops) {
@@ -402,8 +436,15 @@ async function validateItemDefinitions(crops) {
   for (const crop of crops) {
     const seedItem = items.get(crop.seedId);
     if (!seedItem) throw new Error(`Missing seed item: ${crop.seedId}`);
-    if (seedItem.components?.["minecraft:block_placer"]?.block !== crop.cropId) {
-      throw new Error(`Seed does not place canonical crop: ${crop.seedId}`);
+    const blockPlacer = seedItem.components?.["minecraft:block_placer"];
+    if (blockPlacer?.block !== crop.seedId) {
+      throw new Error(`Seed does not place its matching crop block: ${crop.seedId}`);
+    }
+    if (blockPlacer.replace_block_item !== true) {
+      throw new Error(`Seed does not replace canonical crop item: ${crop.seedId}`);
+    }
+    if (seedItem.description?.menu_category?.group !== "minecraft:itemGroup.name.seed") {
+      throw new Error(`Seed uses an invalid creative group: ${crop.seedId}`);
     }
 
     for (const drop of crop.drops) {

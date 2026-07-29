@@ -29,6 +29,8 @@ if (crops.length !== 32) errors.push(`Expected 32 crops, found ${crops.length}`)
 
 const identifiers = new Set()
 const typedIdentifiers = new Set()
+const blockDefinitions = new Map()
+const itemDefinitions = new Map()
 const recipeIds = new Set()
 for (const [path, document] of documents) {
     if (!path.startsWith(bpRoot)) continue
@@ -42,6 +44,8 @@ for (const [path, document] of documents) {
         }
         typedIdentifiers.add(typedIdentifier)
         identifiers.add(identifier)
+        if (rootKey === "minecraft:block") blockDefinitions.set(identifier, document[rootKey])
+        if (rootKey === "minecraft:item") itemDefinitions.set(identifier, document[rootKey])
     }
 
     const recipe = Object.entries(document).find(([key]) => key.startsWith("minecraft:recipe_"))?.[1]
@@ -84,6 +88,51 @@ for (const identifier of requiredIds) {
 }
 
 for (const crop of crops) {
+    const seedItem = itemDefinitions.get(crop.seedId)
+    const blockPlacer = seedItem?.components?.["minecraft:block_placer"]
+    if (blockPlacer?.block !== crop.seedId) {
+        errors.push(`Seed ${crop.seedId} does not place its matching block`)
+    }
+    if (blockPlacer?.replace_block_item !== true) {
+        errors.push(`Seed ${crop.seedId} does not replace the automatic block item`)
+    }
+    if (seedItem?.description?.menu_category?.group !== "minecraft:itemGroup.name.seed") {
+        errors.push(`Seed ${crop.seedId} has an invalid creative group namespace`)
+    }
+
+    const legacyBlock = blockDefinitions.get(crop.cropId)
+    const canonicalBlock = blockDefinitions.get(crop.seedId)
+    if (!legacyBlock) errors.push(`Missing legacy crop block ${crop.cropId}`)
+    if (!canonicalBlock) errors.push(`Missing canonical crop block ${crop.seedId}`)
+
+    const legacyComponents = legacyBlock?.components ?? {}
+    const canonicalComponents = canonicalBlock?.components ?? {}
+    if (Object.hasOwn(legacyComponents, "utilitycraft:crop")) {
+        errors.push(`Legacy crop ${crop.cropId} still has the growth component`)
+    }
+    if (!Object.hasOwn(legacyComponents, "utilitycraft:retrocompatibility")) {
+        errors.push(`Legacy crop ${crop.cropId} is missing retrocompatibility`)
+    }
+    if (legacyComponents["utilitycraft:retrocompatibility"]?.target !== crop.seedId) {
+        errors.push(`Legacy crop ${crop.cropId} has the wrong migration target`)
+    }
+    if (JSON.stringify(legacyComponents["minecraft:tick"]?.interval_range) !== "[100,100]") {
+        errors.push(`Legacy crop ${crop.cropId} must tick every 100 ticks`)
+    }
+    if (!Object.hasOwn(canonicalComponents, "utilitycraft:crop")) {
+        errors.push(`Canonical crop ${crop.seedId} is missing the growth component`)
+    }
+    if (Object.hasOwn(canonicalComponents, "utilitycraft:retrocompatibility")) {
+        errors.push(`Canonical crop ${crop.seedId} has the legacy migration component`)
+    }
+    const expectedGrowthInterval = catalog.tiers?.[String(crop.tier)]?.growthInterval
+    if (JSON.stringify(canonicalComponents["minecraft:tick"]?.interval_range) !== JSON.stringify(expectedGrowthInterval)) {
+        errors.push(`Canonical crop ${crop.seedId} has an invalid growth interval`)
+    }
+    if (JSON.stringify(legacyBlock?.description?.states) !== JSON.stringify(canonicalBlock?.description?.states)) {
+        errors.push(`Crop state definitions differ between ${crop.cropId} and ${crop.seedId}`)
+    }
+
     for (const drop of crop.drops ?? []) {
         if (drop.item.startsWith("utilitycraft:") && !identifiers.has(drop.item)) {
             errors.push(`Missing custom drop ${drop.item} for ${crop.cropId}`)
@@ -137,6 +186,7 @@ for (const crop of crops) {
 await validateAtlas(join(rpRoot, "textures", "terrain_texture.json"), rpRoot)
 await validateAtlas(join(rpRoot, "textures", "item_texture.json"), rpRoot)
 await validateResourceReferences()
+await validateSeedBlockTranslations()
 
 const allText = (await Promise.all(
     [...await collectFiles(bpRoot), ...await collectFiles(rpRoot)]
@@ -208,6 +258,30 @@ async function validateAtlas(path, resourceRoot) {
                 await access(join(resourceRoot, `${texturePath}.png`))
             } catch {
                 errors.push(`${relative(projectRoot, path)}:${key} is missing ${texturePath}.png`)
+            }
+        }
+    }
+}
+
+async function validateSeedBlockTranslations() {
+    const textsRoot = join(rpRoot, "texts")
+    const languages = JSON.parse(await readFile(join(textsRoot, "languages.json"), "utf8"))
+
+    for (const language of languages) {
+        const source = await readFile(join(textsRoot, `${language}.lang`), "utf8")
+        const translations = new Map()
+        for (const line of source.split(/\r?\n/)) {
+            const separator = line.indexOf("=")
+            if (separator < 0) continue
+            translations.set(line.slice(0, separator), line.slice(separator + 1))
+        }
+
+        for (const crop of crops) {
+            const itemText = translations.get(`item.${crop.seedId}`)
+            const blockText = translations.get(`tile.${crop.seedId}.name`)
+            if (!itemText) errors.push(`${language}: missing item translation for ${crop.seedId}`)
+            if (blockText !== itemText) {
+                errors.push(`${language}: block translation differs from item ${crop.seedId}`)
             }
         }
     }

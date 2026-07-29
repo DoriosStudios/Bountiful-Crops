@@ -11,7 +11,8 @@
 		"components": {
 			"minecraft:icon": "utilitycraft_netherite_seeds",
 			"minecraft:block_placer": {
-				"block": "utilitycraft:netherite_crop"
+				"block": "utilitycraft:netherite_seeds",
+				"replace_block_item": true
 			},
 			"minecraft:fire_resistant": {
 				"value": true

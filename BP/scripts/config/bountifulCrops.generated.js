@@ -957,7 +957,10 @@ export const BOUNTIFUL_CROP_DEFINITIONS = Object.freeze([
 ]);
 
 export const BOUNTIFUL_CROPS_BY_BLOCK = Object.freeze(Object.fromEntries(
-  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.cropId, definition])
+  BOUNTIFUL_CROP_DEFINITIONS.flatMap(definition => [
+    [definition.cropId, definition],
+    [definition.seedId, definition]
+  ])
 ));
 
 export const BOUNTIFUL_CROPS_BY_SEED = Object.freeze(Object.fromEntries(

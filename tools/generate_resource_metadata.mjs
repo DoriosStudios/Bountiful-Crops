@@ -38,7 +38,7 @@ const entityIds = [
     "utilitycraft:diamond_accelerator_clock",
     "utilitycraft:nether_star_accelerator_clock"
 ]
-const blockIds = [...cropIds, ...soilIds, "utilitycraft:pedestal"]
+const blockIds = [...cropIds, ...seedIds, ...soilIds, "utilitycraft:pedestal"]
 const translatableIds = new Set([
     ...blockIds,
     ...seedIds,
@@ -67,6 +67,10 @@ await filterAtlas(
 
 const blocksPath = join(projectRoot, "RP", "blocks.json")
 const blocks = parseJsonc(await readFile(blocksPath, "utf8"))
+for (const crop of cropCatalog.crops) {
+    if (!blocks[crop.cropId]) throw new Error(`Missing RP block metadata: ${crop.cropId}`)
+    blocks[crop.seedId] = structuredClone(blocks[crop.cropId])
+}
 const filteredBlocks = { format_version: blocks.format_version }
 for (const identifier of blockIds) {
     if (!blocks[identifier]) throw new Error(`Missing RP block metadata: ${identifier}`)
@@ -76,6 +80,7 @@ await writeJson(blocksPath, filteredBlocks)
 
 const textsDirectory = join(projectRoot, "RP", "texts")
 const languages = JSON.parse(await readFile(join(textsDirectory, "languages.json"), "utf8"))
+const englishLines = (await readFile(join(textsDirectory, "en_US.lang"), "utf8")).split(/\r?\n/)
 for (const language of languages) {
     const path = join(textsDirectory, `${language}.lang`)
     const lines = (await readFile(path, "utf8")).split(/\r?\n/)
@@ -85,6 +90,18 @@ for (const language of languages) {
             return [...translatableIds].some(identifier => line.includes(identifier))
         })
         .map(line => line.replaceAll("@UtilityCraft", "@Bountiful Crops"))
+        .filter(line => !seedIds.some(seedId => line.startsWith(`tile.${seedId}.name=`)))
+    for (const seedId of seedIds) {
+        const itemPrefix = `item.${seedId}=`
+        const tilePrefix = `tile.${seedId}.name=`
+        let itemLine = keptLines.find(line => line.startsWith(itemPrefix))
+        if (!itemLine) {
+            itemLine = englishLines.find(line => line.startsWith(itemPrefix))
+            if (!itemLine) throw new Error(`Missing fallback translation for ${seedId}`)
+            keptLines.push(itemLine)
+        }
+        keptLines.push(`${tilePrefix}${itemLine.slice(itemPrefix.length)}`)
+    }
     const header = [
         "pack.name=Bountiful Crops",
         "pack.description=Standalone resource crops, soils, pedestal, and accelerator clocks"
