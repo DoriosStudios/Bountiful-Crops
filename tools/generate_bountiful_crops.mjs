@@ -1,0 +1,444 @@
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const toolsDirectory = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(toolsDirectory, "..");
+const sourcePath = join(toolsDirectory, "data", "bountiful_crops.json");
+const bonsaiBehaviorTemplatePath = join(
+  toolsDirectory,
+  "data",
+  "bonsai_entity.template.json"
+);
+const cropBlocksRoot = join(projectRoot, "BP", "blocks", "bc", "crops");
+const cropLootRoot = join(projectRoot, "BP", "loot_tables", "bc", "crops");
+const seedLootRoot = join(projectRoot, "BP", "loot_tables", "bc", "seeds");
+const itemsRoot = join(projectRoot, "BP", "items");
+const behaviorBonsaisRoot = join(projectRoot, "BP", "entities", "bonsais");
+const resourceBonsaisRoot = join(projectRoot, "RP", "entity", "bonsais");
+const blockModelsRoot = join(projectRoot, "RP", "models", "blocks", "bountiful_crops");
+const bonsaiModelsRoot = join(projectRoot, "RP", "models", "entity", "bountiful_crops");
+const terrainAtlasPath = join(projectRoot, "RP", "textures", "terrain_texture.json");
+const runtimeOutputPath = join(
+  projectRoot,
+  "BP",
+  "scripts",
+  "config",
+  "bountifulCrops.generated.js"
+);
+
+const BONSAI_DURATION_SECONDS_BY_TIER = Object.freeze({
+  1: 120,
+  2: 180,
+  3: 300,
+  4: 600
+});
+
+const BONSAI_GEOMETRIES = Object.freeze({
+  "geometry.utilitycraft_crop": {
+    sourceFile: "crop.geo.json",
+    outputFile: "crop_bonsai.geo.json",
+    identifier: "geometry.bountiful_crops_crop_bonsai"
+  },
+  "geometry.utilitycraft_special_crop": {
+    sourceFile: "crop_special.geo.json",
+    outputFile: "special_crop_bonsai.geo.json",
+    identifier: "geometry.bountiful_crops_special_crop_bonsai"
+  },
+  "geometry.utilitycraft_block_crop": {
+    sourceFile: "block_crop.geo.json",
+    outputFile: "block_crop_bonsai.geo.json",
+    identifier: "geometry.bountiful_crops_block_crop_bonsai"
+  },
+  "geometry.utilitycraft_wither_crop": {
+    sourceFile: "wither_crop.geo.json",
+    outputFile: "wither_crop_bonsai.geo.json",
+    identifier: "geometry.bountiful_crops_wither_crop_bonsai"
+  }
+});
+
+const source = JSON.parse(await readFile(sourcePath, "utf8"));
+const definitions = normalizeDefinitions(source);
+await validateItemDefinitions(definitions);
+await generateRuntimeModule(definitions);
+await generateLootTables(definitions);
+await updateCropBlocks(definitions);
+await generateBonsaiAssets(definitions);
+
+console.log(`Generated ${definitions.length} Bountiful Crops definitions.`);
+
+function normalizeDefinitions(rawSource) {
+  if (!rawSource || typeof rawSource !== "object") throw new TypeError("Invalid crop source");
+  if (!Array.isArray(rawSource.crops)) throw new TypeError("crops must be an array");
+
+  const uniqueKeys = new Set();
+  const uniqueCropIds = new Set();
+  const uniqueSeedIds = new Set();
+  const uniqueLootFiles = new Set();
+
+  return rawSource.crops.map(rawCrop => {
+    const tierSettings = rawSource.tiers?.[String(rawCrop.tier)];
+    if (!tierSettings) throw new Error(`Missing tier settings for ${rawCrop.key}`);
+    validateGrowthInterval(tierSettings.growthInterval, rawCrop.key);
+    if (!(tierSettings.seedChance > 0 && tierSettings.seedChance < 1)) {
+      throw new Error(`Invalid seed chance for tier ${rawCrop.tier}`);
+    }
+    if (typeof rawCrop.soil !== "string" || !rawCrop.soil.includes(":")) {
+      throw new Error(`Invalid soil in ${rawCrop.key}`);
+    }
+    if (!Array.isArray(rawCrop.drops) || rawCrop.drops.length === 0) {
+      throw new Error(`Crop ${rawCrop.key} must define at least one drop`);
+    }
+
+    assertUnique(uniqueKeys, rawCrop.key, "key");
+    assertUnique(uniqueCropIds, rawCrop.cropId, "cropId");
+    assertUnique(uniqueSeedIds, rawCrop.seedId, "seedId");
+    assertUnique(uniqueLootFiles, rawCrop.lootFile, "lootFile");
+
+    const drops = rawCrop.drops.map(drop => {
+      if (typeof drop.item !== "string" || !drop.item.includes(":")) {
+        throw new Error(`Invalid drop item in ${rawCrop.key}`);
+      }
+      const chance = Number(drop.chance ?? 1);
+      if (!(chance > 0 && chance <= 1)) throw new Error(`Invalid drop chance in ${rawCrop.key}`);
+      validateAmount(drop.amount, rawCrop.key);
+      return { item: drop.item, amount: drop.amount, chance };
+    });
+
+    const bonsaiDurationSeconds = BONSAI_DURATION_SECONDS_BY_TIER[rawCrop.tier];
+    if (!bonsaiDurationSeconds) throw new Error(`Missing bonsai duration for tier ${rawCrop.tier}`);
+
+    return {
+      ...rawCrop,
+      growthInterval: [...tierSettings.growthInterval],
+      seedChance: Number(tierSettings.seedChance),
+      bonsaiEntityId: `bountiful_crops:${rawCrop.key}_bonsai`,
+      bonsaiDurationSeconds,
+      drops
+    };
+  });
+}
+
+function assertUnique(values, value, label) {
+  if (typeof value !== "string" || value.length === 0) throw new Error(`Invalid ${label}`);
+  if (values.has(value)) throw new Error(`Duplicate ${label}: ${value}`);
+  values.add(value);
+}
+
+function validateAmount(amount, key) {
+  if (Number.isInteger(amount) && amount > 0) return;
+  if (
+    Array.isArray(amount) &&
+    amount.length === 2 &&
+    Number.isInteger(amount[0]) &&
+    Number.isInteger(amount[1]) &&
+    amount[0] > 0 &&
+    amount[1] >= amount[0]
+  ) return;
+  throw new Error(`Invalid drop amount in ${key}`);
+}
+
+function validateGrowthInterval(interval, key) {
+  if (
+    !Array.isArray(interval) ||
+    interval.length !== 2 ||
+    !Number.isInteger(interval[0]) ||
+    !Number.isInteger(interval[1]) ||
+    interval[0] <= 0 ||
+    interval[1] < interval[0]
+  ) throw new Error(`Invalid growth interval in ${key}`);
+}
+
+async function generateRuntimeModule(crops) {
+  const serialized = JSON.stringify(crops, null, 2);
+  const moduleSource = `// This file is generated by tools/generate_bountiful_crops.mjs.\n` +
+`// Edit tools/data/bountiful_crops.json, then run the generator.\n\n` +
+`export const BOUNTIFUL_CROP_DEFINITIONS = Object.freeze(${serialized});\n\n` +
+`export const BOUNTIFUL_CROPS_BY_BLOCK = Object.freeze(Object.fromEntries(\n` +
+`  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.cropId, definition])\n` +
+`));\n\n` +
+`export const BOUNTIFUL_CROPS_BY_SEED = Object.freeze(Object.fromEntries(\n` +
+`  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.seedId, definition])\n` +
+`));\n\n` +
+`export const cropData = Object.freeze(Object.fromEntries(\n` +
+`  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.cropId, {\n` +
+`    seed: definition.seedId,\n` +
+`    loot: \`bc/crops/\${definition.lootFile}\`,\n` +
+`    tier: definition.tier,\n` +
+`    drops: definition.drops,\n` +
+`    seedChance: definition.seedChance\n` +
+`  }])\n` +
+`));\n\n` +
+`export const bountifulPlantsData = Object.freeze(Object.fromEntries(\n` +
+`  BOUNTIFUL_CROP_DEFINITIONS.map(definition => [definition.seedId, {\n` +
+`    cost: definition.cost,\n` +
+`    bonsai: {\n` +
+`      entityTypeId: definition.bonsaiEntityId,\n` +
+`      durationSeconds: definition.bonsaiDurationSeconds\n` +
+`    },\n` +
+`    drops: [\n` +
+`      ...definition.drops.map(drop => ({\n` +
+`        item: drop.item,\n` +
+`        amount: Array.isArray(drop.amount) ? [...drop.amount] : drop.amount,\n` +
+`        chance: drop.chance\n` +
+`      })),\n` +
+`      { item: definition.seedId, amount: 1, chance: definition.seedChance }\n` +
+`    ]\n` +
+`  }])\n` +
+`));\n`;
+
+  await writeFile(runtimeOutputPath, moduleSource, "utf8");
+}
+
+async function generateLootTables(crops) {
+  for (const crop of crops) {
+    const maturePools = crop.drops.map(drop => createDropPool(drop));
+    maturePools.push({
+      rolls: 1,
+      conditions: [{ condition: "random_chance", chance: crop.seedChance }],
+      entries: [{ type: "item", name: crop.seedId }]
+    });
+
+    await writeJson(join(cropLootRoot, `${crop.lootFile}.json`), { pools: maturePools });
+    await writeJson(join(seedLootRoot, `${crop.lootFile}.json`), {
+      pools: [{ rolls: 1, entries: [{ type: "item", name: crop.seedId }] }]
+    });
+  }
+
+  const expectedFiles = new Set(crops.map(crop => `${crop.lootFile}.json`));
+  await validateExactJsonFiles(cropLootRoot, expectedFiles, "mature loot table");
+  await validateExactJsonFiles(seedLootRoot, expectedFiles, "seed loot table");
+}
+
+function createDropPool(drop) {
+  const entry = { type: "item", name: drop.item };
+  if (drop.amount !== 1) {
+    entry.functions = [{
+      function: "set_count",
+      count: Array.isArray(drop.amount)
+        ? { min: drop.amount[0], max: drop.amount[1] }
+        : drop.amount
+    }];
+  }
+
+  const pool = { rolls: 1, entries: [entry] };
+  if (drop.chance < 1) pool.conditions = [{ condition: "random_chance", chance: drop.chance }];
+  return pool;
+}
+
+async function updateCropBlocks(crops) {
+  const definitionsByBlock = new Map(crops.map(crop => [crop.cropId, crop]));
+  const files = await collectJsonFiles(cropBlocksRoot);
+  const foundBlocks = new Set();
+
+  for (const filePath of files) {
+    const document = JSON.parse(await readFile(filePath, "utf8"));
+    const block = document["minecraft:block"];
+    const identifier = block?.description?.identifier;
+    const definition = definitionsByBlock.get(identifier);
+    if (!definition) throw new Error(`Unregistered crop block: ${identifier ?? relative(projectRoot, filePath)}`);
+
+    foundBlocks.add(identifier);
+    block.components["minecraft:tick"] = {
+      interval_range: [...definition.growthInterval],
+      looping: true
+    };
+    block.components["minecraft:loot"] = `loot_tables/bc/seeds/${definition.lootFile}.json`;
+
+    const placementConditions = block.components["minecraft:placement_filter"]?.conditions;
+    if (!Array.isArray(placementConditions) || !placementConditions[0]) {
+      throw new Error(`Missing placement filter: ${identifier}`);
+    }
+    placementConditions[0].block_filter = [definition.soil];
+
+    const maturePermutation = block.permutations.find(permutation =>
+      typeof permutation.condition === "string" && permutation.condition.includes("age')==5")
+    );
+    if (!maturePermutation) throw new Error(`Missing mature permutation: ${identifier}`);
+    maturePermutation.components["minecraft:loot"] = `loot_tables/bc/crops/${definition.lootFile}.json`;
+
+    await writeJson(filePath, document);
+  }
+
+  for (const crop of crops) {
+    if (!foundBlocks.has(crop.cropId)) throw new Error(`Missing crop block: ${crop.cropId}`);
+  }
+}
+
+async function generateBonsaiAssets(crops) {
+  await Promise.all([
+    mkdir(behaviorBonsaisRoot, { recursive: true }),
+    mkdir(resourceBonsaisRoot, { recursive: true }),
+    mkdir(bonsaiModelsRoot, { recursive: true })
+  ]);
+
+  await generateBonsaiGeometryCopies();
+
+  const behaviorTemplate = await readFile(bonsaiBehaviorTemplatePath, "utf8");
+  if (!behaviorTemplate.includes("__BONSAI_IDENTIFIER__")) {
+    throw new Error("Bonsai behavior template is missing its identifier placeholder");
+  }
+  const terrainAtlas = JSON.parse(await readFile(terrainAtlasPath, "utf8"));
+  const cropBlockFiles = await collectJsonFiles(cropBlocksRoot);
+  const matureVisualsByBlock = new Map();
+
+  for (const filePath of cropBlockFiles) {
+    const document = JSON.parse(await readFile(filePath, "utf8"));
+    const block = document["minecraft:block"];
+    const identifier = block?.description?.identifier;
+    const maturePermutation = block?.permutations?.find(permutation =>
+      typeof permutation.condition === "string" && permutation.condition.includes("age')==5")
+    );
+    if (!identifier || !maturePermutation) continue;
+
+    const geometry = maturePermutation.components?.["minecraft:geometry"]
+      ?? block.components?.["minecraft:geometry"];
+    const material = maturePermutation.components?.["minecraft:material_instances"]?.["*"];
+    const textureKey = material?.texture;
+    const textureDefinition = terrainAtlas.texture_data?.[textureKey];
+    const texturePath = Array.isArray(textureDefinition?.textures)
+      ? textureDefinition.textures[0]
+      : textureDefinition?.textures;
+
+    if (typeof geometry !== "string") throw new Error(`Invalid mature geometry: ${identifier}`);
+    if (typeof texturePath !== "string") throw new Error(`Invalid mature texture: ${identifier}`);
+    matureVisualsByBlock.set(identifier, { geometry, texturePath });
+  }
+
+  for (const crop of crops) {
+    const visuals = matureVisualsByBlock.get(crop.cropId);
+    if (!visuals) throw new Error(`Missing mature visuals: ${crop.cropId}`);
+    const geometry = BONSAI_GEOMETRIES[visuals.geometry];
+    if (!geometry) throw new Error(`Unsupported mature geometry ${visuals.geometry}: ${crop.cropId}`);
+
+    const fileName = `${crop.key}_bonsai.json`;
+    await writeFile(
+      join(behaviorBonsaisRoot, fileName),
+      behaviorTemplate.replace("__BONSAI_IDENTIFIER__", crop.bonsaiEntityId),
+      "utf8"
+    );
+    await writeJson(
+      join(resourceBonsaisRoot, fileName),
+      createBonsaiClientEntity(crop.bonsaiEntityId, geometry.identifier, visuals.texturePath)
+    );
+  }
+
+  const expectedEntityFiles = new Set(crops.map(crop => `${crop.key}_bonsai.json`));
+  await validateExactJsonFiles(behaviorBonsaisRoot, expectedEntityFiles, "bonsai behavior entity");
+  await validateExactJsonFiles(resourceBonsaisRoot, expectedEntityFiles, "bonsai client entity");
+  await validateExactJsonFiles(
+    bonsaiModelsRoot,
+    new Set(Object.values(BONSAI_GEOMETRIES).map(geometry => geometry.outputFile)),
+    "bonsai geometry"
+  );
+}
+
+async function generateBonsaiGeometryCopies() {
+  for (const geometry of Object.values(BONSAI_GEOMETRIES)) {
+    const source = JSON.parse(await readFile(join(blockModelsRoot, geometry.sourceFile), "utf8"));
+    const copy = JSON.parse(JSON.stringify(source));
+    const model = copy["minecraft:geometry"]?.[0];
+    if (!model) throw new Error(`Invalid source geometry: ${geometry.sourceFile}`);
+
+    model.description.identifier = geometry.identifier;
+    model.description.visible_bounds_width = 2;
+    model.description.visible_bounds_height = 1.5;
+    model.description.visible_bounds_offset = [0, 0.25, 0];
+
+    for (const bone of model.bones ?? []) {
+      if (!bone.parent) bone.parent = "tree";
+      scaleVectorProperty(bone, "pivot");
+      for (const cube of bone.cubes ?? []) {
+        scaleVectorProperty(cube, "origin");
+        scaleVectorProperty(cube, "size");
+        scaleVectorProperty(cube, "pivot");
+        if (typeof cube.inflate === "number") cube.inflate *= 0.25;
+      }
+    }
+    model.bones = [{ name: "tree", pivot: [0, 0, 0] }, ...(model.bones ?? [])];
+    await writeJson(join(bonsaiModelsRoot, geometry.outputFile), copy);
+  }
+}
+
+function scaleVectorProperty(target, property) {
+  if (!Array.isArray(target?.[property])) return;
+  target[property] = target[property].map(value =>
+    typeof value === "number" ? value * 0.25 : value
+  );
+}
+
+function createBonsaiClientEntity(identifier, geometry, texture) {
+  return {
+    format_version: "1.10.0",
+    "minecraft:client_entity": {
+      description: {
+        identifier,
+        materials: { default: "entity_alphatest" },
+        textures: { default: texture },
+        geometry: { default: geometry },
+        render_controllers: ["controller.render.default"],
+        animations: {
+          controller: "controller.animation.bountiful_crops_bonsai_dynamic",
+          grow_dynamic: "animation.bountiful_crops_bonsai.grow_dynamic"
+        },
+        scripts: { animate: ["controller"] }
+      }
+    }
+  };
+}
+
+async function validateItemDefinitions(crops) {
+  const itemFiles = await collectJsonFiles(itemsRoot);
+  const items = new Map();
+
+  for (const filePath of itemFiles) {
+    const document = JSON.parse(await readFile(filePath, "utf8"));
+    const item = document["minecraft:item"];
+    const identifier = item?.description?.identifier;
+    if (identifier) items.set(identifier, item);
+  }
+
+  for (const crop of crops) {
+    const seedItem = items.get(crop.seedId);
+    if (!seedItem) throw new Error(`Missing seed item: ${crop.seedId}`);
+    if (seedItem.components?.["minecraft:block_placer"]?.block !== crop.cropId) {
+      throw new Error(`Seed does not place canonical crop: ${crop.seedId}`);
+    }
+
+    for (const drop of crop.drops) {
+      if (drop.item.startsWith("utilitycraft:") && !items.has(drop.item)) {
+        throw new Error(`Missing custom drop item: ${drop.item}`);
+      }
+    }
+  }
+}
+
+async function validateExactJsonFiles(directory, expectedFiles, label) {
+  const actualFiles = new Set(
+    (await readdir(directory, { withFileTypes: true }))
+      .filter(entry => entry.isFile() && entry.name.endsWith(".json"))
+      .map(entry => entry.name)
+  );
+
+  for (const fileName of expectedFiles) {
+    if (!actualFiles.has(fileName)) throw new Error(`Missing ${label}: ${fileName}`);
+  }
+  for (const fileName of actualFiles) {
+    if (!expectedFiles.has(fileName)) throw new Error(`Unregistered ${label}: ${fileName}`);
+  }
+}
+
+async function collectJsonFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await collectJsonFiles(entryPath));
+    else if (entry.isFile() && entry.name.endsWith(".json")) files.push(entryPath);
+  }
+  return files;
+}
+
+async function writeJson(filePath, value) {
+  await writeFile(filePath, `${JSON.stringify(value, null, "\t")}\n`, "utf8");
+}

@@ -1,0 +1,144 @@
+{
+	"resource_pack_name": "Bountiful Crops",
+	"texture_name": "atlas.items",
+	"texture_data": {
+		"utilitycraft_base_seeds": {
+			"textures": "textures/items/seeds/base_seeds"
+		},
+		"utilitycraft_diamond_seeds": {
+			"textures": "textures/items/seeds/diamond_seeds"
+		},
+		"utilitycraft_iron_seeds": {
+			"textures": "textures/items/seeds/iron_seeds"
+		},
+		"utilitycraft_lapis_seeds": {
+			"textures": "textures/items/seeds/lapis_seeds"
+		},
+		"utilitycraft_gold_seeds": {
+			"textures": "textures/items/seeds/gold_seeds"
+		},
+		"utilitycraft_redstone_seeds": {
+			"textures": "textures/items/seeds/redstone_seeds"
+		},
+		"utilitycraft_resin_seeds": {
+			"textures": "textures/items/seeds/base_seeds"
+		},
+		"utilitycraft_coal_seeds": {
+			"textures": "textures/items/seeds/coal_seeds"
+		},
+		"utilitycraft_emerald_seeds": {
+			"textures": "textures/items/seeds/emerald_seeds"
+		},
+		"utilitycraft_netherite_seeds": {
+			"textures": "textures/items/seeds/netherite_seeds"
+		},
+		"utilitycraft_blaze_seeds": {
+			"textures": "textures/items/seeds/blaze_seeds"
+		},
+		"utilitycraft_wither_seeds": {
+			"textures": "textures/items/seeds/wither_seeds"
+		},
+		"utilitycraft_nether_star_seeds": {
+			"textures": "textures/items/seeds/nether_star_seeds"
+		},
+		"utilitycraft_shulker_seeds": {
+			"textures": "textures/items/seeds/shulker_seeds"
+		},
+		"utilitycraft_totem_seeds": {
+			"textures": "textures/items/seeds/totem_seeds"
+		},
+		"utilitycraft_obsidian_seeds": {
+			"textures": "textures/items/seeds/obsidian_seeds"
+		},
+		"utilitycraft_enderpearl_seeds": {
+			"textures": "textures/items/seeds/ender_pearl_seeds"
+		},
+		"utilitycraft_amethyst_seeds": {
+			"textures": "textures/items/seeds/amethyst_seeds"
+		},
+		"utilitycraft_glowstone_seeds": {
+			"textures": "textures/items/seeds/glowstone_seeds"
+		},
+		"utilitycraft_honey_seeds": {
+			"textures": "textures/items/seeds/honey_seeds"
+		},
+		"utilitycraft_quartz_seeds": {
+			"textures": "textures/items/seeds/quartz_seeds"
+		},
+		"utilitycraft_slime_seeds": {
+			"textures": "textures/items/seeds/slime_seeds"
+		},
+		"utilitycraft_honey_ball": {
+			"textures": "textures/items/misc/honey_ball"
+		},
+		"utilitycraft_water_seeds": {
+			"textures": "textures/items/seeds/water_seeds"
+		},
+		"utilitycraft_lava_seeds": {
+			"textures": "textures/items/seeds/lava_seeds"
+		},
+		"utilitycraft_prismarine_crystals_seeds": {
+			"textures": "textures/items/seeds/prismarine_crystals_seeds"
+		},
+		"utilitycraft_prismarine_shards_seeds": {
+			"textures": "textures/items/seeds/prismarine_shards_seeds"
+		},
+		"utilitycraft_glass_seeds": {
+			"textures": "textures/items/seeds/glass_seeds"
+		},
+		"utilitycraft_lavaball": {
+			"textures": "textures/items/misc/lavaball"
+		},
+		"utilitycraft_waterball": {
+			"textures": "textures/items/misc/waterball"
+		},
+		"utilitycraft_copper_seeds": {
+			"textures": "textures/items/seeds/copper_seeds"
+		},
+		"utilitycraft_ghast_seeds": {
+			"textures": "textures/items/seeds/ghast_seeds"
+		},
+		"utilitycraft_gunpowder_seeds": {
+			"textures": "textures/items/seeds/gunpowder_seeds"
+		},
+		"utilitycraft_leather_seeds": {
+			"textures": "textures/items/seeds/leather_seeds"
+		},
+		"utilitycraft_wool_seeds": {
+			"textures": "textures/items/seeds/wool_seeds"
+		},
+		"utilitycraft_dyes_seeds": {
+			"textures": "textures/items/seeds/dye_seeds"
+		},
+		"utilitycraft_accelerator_clock": {
+			"textures": "textures/items/misc/accelerator_clock"
+		},
+		"utilitycraft_diamond_accelerator_clock": {
+			"textures": "textures/items/misc/accelerator_clock_1"
+		},
+		"utilitycraft_nether_star_accelerator_clock": {
+			"textures": "textures/items/misc/accelerator_clock_2"
+		},
+		"utilitycraft_netherite_nugget": {
+			"textures": "textures/items/ores/netherite_nugget"
+		},
+		"utilitycraft_diamond_shard": {
+			"textures": "textures/items/pebbles/diamond_shard"
+		},
+		"utilitycraft_emerald_shard": {
+			"textures": "textures/items/pebbles/emerald_shard"
+		},
+		"utilitycraft_nether_star_fragment": {
+			"textures": "textures/items/pebbles/nether_star_fragment"
+		},
+		"utilitycraft_shulker_shell_shard": {
+			"textures": "textures/items/pebbles/shulker_shell_shard"
+		},
+		"utilitycraft_totem_shard": {
+			"textures": "textures/items/pebbles/totem_shard"
+		},
+		"utilitycraft_wither_skull_shard": {
+			"textures": "textures/items/pebbles/wither_skull_shard"
+		}
+	}
+}

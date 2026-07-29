@@ -1,0 +1,35 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "utilitycraft:wool_seeds"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"key": {
+			"O": {
+				"item": "wool"
+			},
+			"S": {
+				"item": "utilitycraft:base_seeds"
+			}
+		},
+		"pattern": [
+			"OOO",
+			"OSO",
+			"OOO"
+		],
+		"result": {
+			"item": "utilitycraft:wool_seeds"
+		},
+		"unlock": [
+			{
+				"item": "minecraft:wool"
+			},
+			{
+				"item": "utilitycraft:base_seeds"
+			}
+		]
+	}
+}

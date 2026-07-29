@@ -1,0 +1,17 @@
+{
+  "name": "bountiful-crops",
+  "private": true,
+  "scripts": {
+    "generate:crops": "node tools/generate_bountiful_crops.mjs",
+    "generate:resources": "node tools/generate_resource_metadata.mjs",
+    "generate": "npm run generate:crops && npm run generate:resources",
+    "validate": "node tools/validate_addon.mjs",
+    "bundle": "esbuild BP/scripts/main.js --outfile=BP/scripts/__bundle.js --bundle --format=esm --target=es2020 --external:@minecraft/server"
+  },
+  "dependencies": {
+    "@minecraft/server": "^2.8.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}

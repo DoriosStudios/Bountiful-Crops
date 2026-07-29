@@ -1,0 +1,18 @@
+{
+	"format_version": "1.20.80",
+	"minecraft:item": {
+		"description": {
+			"identifier": "utilitycraft:glass_seeds",
+			"menu_category": {
+				"category": "nature",
+				"group": "itemGroup.name.seed"
+			}
+		},
+		"components": {
+			"minecraft:icon": "utilitycraft_glass_seeds",
+			"minecraft:block_placer": {
+				"block": "utilitycraft:glass_crop"
+			}
+		}
+	}
+}

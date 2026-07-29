@@ -1,0 +1,46 @@
+{
+  "format_version": 2,
+  "metadata": {
+    "authors": [
+      "Dorios Studios"
+    ],
+    "product_type": "addon",
+    "url": "https://www.curseforge.com/minecraft-bedrock/addons/bountiful-crops"
+  },
+  "header": {
+    "name": "Bountiful Crops",
+    "description": "v1.1.0 §6Dorios Studios",
+    "min_engine_version": [
+      1,
+      20,
+      0
+    ],
+    "uuid": "22d26f96-951a-4746-b9de-5517e1305121",
+    "version": [
+      1,
+      1,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "20d8a732-6cd7-437b-b67d-8c4f190b2514",
+      "version": [
+        1,
+        1,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "9c87c85f-d2fe-476d-b150-3370b0e7ee22",
+      "version": [
+        1,
+        1,
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+{
+	"num_mip_levels": 4,
+	"padding": 8,
+	"resource_pack_name": "Bountiful Crops",
+	"texture_name": "atlas.terrain",
+	"texture_data": {
+		"utilitycraft_base0": {
+			"textures": "textures/blocks/crops/crop_0"
+		},
+		"utilitycraft_base1": {
+			"textures": "textures/blocks/crops/crop_1"
+		},
+		"utilitycraft_base2": {
+			"textures": "textures/blocks/crops/crop_2"
+		},
+		"utilitycraft_base3": {
+			"textures": "textures/blocks/crops/crop_3"
+		},
+		"utilitycraft_amethyst_crop0": {
+			"textures": "textures/blocks/crops/amethyst_0"
+		},
+		"utilitycraft_amethyst_crop1": {
+			"textures": "textures/blocks/crops/amethyst_1"
+		},
+		"utilitycraft_blaze_crop0": {
+			"textures": "textures/blocks/crops/blaze_0"
+		},
+		"utilitycraft_blaze_crop1": {
+			"textures": "textures/blocks/crops/blaze_1"
+		},
+		"utilitycraft_coal_crop0": {
+			"textures": "textures/blocks/crops/coal_0"
+		},
+		"utilitycraft_coal_crop1": {
+			"textures": "textures/blocks/crops/coal_1"
+		},
+		"utilitycraft_copper_crop0": {
+			"textures": "textures/blocks/crops/copper_0"
+		},
+		"utilitycraft_copper_crop1": {
+			"textures": "textures/blocks/crops/copper_1"
+		},
+		"utilitycraft_diamond_crop0": {
+			"textures": "textures/blocks/crops/diamond_0"
+		},
+		"utilitycraft_diamond_crop1": {
+			"textures": "textures/blocks/crops/diamond_1"
+		},
+		"utilitycraft_dye_crop0": {
+			"textures": "textures/blocks/crops/dye_0"
+		},
+		"utilitycraft_dye_crop1": {
+			"textures": "textures/blocks/crops/dye_1"
+		},
+		"utilitycraft_emerald_crop0": {
+			"textures": "textures/blocks/crops/emerald_0"
+		},
+		"utilitycraft_emerald_crop1": {
+			"textures": "textures/blocks/crops/emerald_1"
+		},
+		"utilitycraft_ender_pearl_crop0": {
+			"textures": "textures/blocks/crops/ender_pearl_0"
+		},
+		"utilitycraft_ender_pearl_crop1": {
+			"textures": "textures/blocks/crops/ender_pearl_1"
+		},
+		"utilitycraft_ghast_crop0": {
+			"textures": "textures/blocks/crops/ghast_0"
+		},
+		"utilitycraft_ghast_crop1": {
+			"textures": "textures/blocks/crops/ghast_1"
+		},
+		"utilitycraft_glass_crop0": {
+			"textures": "textures/blocks/crops/glass_0"
+		},
+		"utilitycraft_glass_crop1": {
+			"textures": "textures/blocks/crops/glass_1"
+		},
+		"utilitycraft_glowstone_crop0": {
+			"textures": "textures/blocks/crops/glowstone_0"
+		},
+		"utilitycraft_glowstone_crop1": {
+			"textures": "textures/blocks/crops/glowstone_1"
+		},
+		"utilitycraft_gold_crop0": {
+			"textures": "textures/blocks/crops/gold_0"
+		},
+		"utilitycraft_gold_crop1": {
+			"textures": "textures/blocks/crops/gold_1"
+		},
+		"utilitycraft_gunpowder_crop0": {
+			"textures": "textures/blocks/crops/gunpowder_0"
+		},
+		"utilitycraft_gunpowder_crop1": {
+			"textures": "textures/blocks/crops/gunpowder_1"
+		},
+		"utilitycraft_honey_crop0": {
+			"textures": "textures/blocks/crops/honey_0"
+		},
+		"utilitycraft_honey_crop1": {
+			"textures": "textures/blocks/crops/honey_1"
+		},
+		"utilitycraft_iron_crop0": {
+			"textures": "textures/blocks/crops/iron_0"
+		},
+		"utilitycraft_iron_crop1": {
+			"textures": "textures/blocks/crops/iron_1"
+		},
+		"utilitycraft_lapis_crop0": {
+			"textures": "textures/blocks/crops/lapis_0"
+		},
+		"utilitycraft_lapis_crop1": {
+			"textures": "textures/blocks/crops/lapis_1"
+		},
+		"utilitycraft_lava_crop0": {
+			"textures": "textures/blocks/crops/lava_0"
+		},
+		"utilitycraft_lava_crop1": {
+			"textures": "textures/blocks/crops/lava_1"
+		},
+		"utilitycraft_leather_crop0": {
+			"textures": "textures/blocks/crops/leather_0"
+		},
+		"utilitycraft_leather_crop1": {
+			"textures": "textures/blocks/crops/leather_1"
+		},
+		"utilitycraft_nether_star_crop0": {
+			"textures": "textures/blocks/crops/nether_star_0"
+		},
+		"utilitycraft_nether_star_crop1": {
+			"textures": "textures/blocks/crops/nether_star_1"
+		},
+		"utilitycraft_netherite_crop0": {
+			"textures": "textures/blocks/crops/netherite_0"
+		},
+		"utilitycraft_netherite_crop1": {
+			"textures": "textures/blocks/crops/netherite_1"
+		},
+		"utilitycraft_obsidian_crop0": {
+			"textures": "textures/blocks/crops/obsidian_0"
+		},
+		"utilitycraft_obsidian_crop1": {
+			"textures": "textures/blocks/crops/obsidian_1"
+		},
+		"utilitycraft_prismarine_crystal_crop0": {
+			"textures": "textures/blocks/crops/prismarine_crystals_0"
+		},
+		"utilitycraft_prismarine_crystal_crop1": {
+			"textures": "textures/blocks/crops/prismarine_crystals_1"
+		},
+		"utilitycraft_prismarine_shards_crop0": {
+			"textures": "textures/blocks/crops/prismarine_shards_0"
+		},
+		"utilitycraft_prismarine_shards_crop1": {
+			"textures": "textures/blocks/crops/prismarine_shards_1"
+		},
+		"utilitycraft_quartz_crop0": {
+			"textures": "textures/blocks/crops/quartz_0"
+		},
+		"utilitycraft_quartz_crop1": {
+			"textures": "textures/blocks/crops/quartz_1"
+		},
+		"utilitycraft_redstone_crop0": {
+			"textures": "textures/blocks/crops/redstone_0"
+		},
+		"utilitycraft_redstone_crop1": {
+			"textures": "textures/blocks/crops/redstone_1"
+		},
+		"utilitycraft_resin_crop0": {
+			"textures": "textures/blocks/crops/resin_0"
+		},
+		"utilitycraft_resin_crop1": {
+			"textures": "textures/blocks/crops/resin_1"
+		},
+		"utilitycraft_shulker_crop0": {
+			"textures": "textures/blocks/crops/shulker_0"
+		},
+		"utilitycraft_shulker_crop1": {
+			"textures": "textures/blocks/crops/shulker_1"
+		},
+		"utilitycraft_slime_crop0": {
+			"textures": "textures/blocks/crops/slime_0"
+		},
+		"utilitycraft_slime_crop1": {
+			"textures": "textures/blocks/crops/slime_1"
+		},
+		"utilitycraft_totem_crop0": {
+			"textures": "textures/blocks/crops/totem_0"
+		},
+		"utilitycraft_totem_crop1": {
+			"textures": "textures/blocks/crops/totem_1"
+		},
+		"utilitycraft_water_crop0": {
+			"textures": "textures/blocks/crops/water_0"
+		},
+		"utilitycraft_water_crop1": {
+			"textures": "textures/blocks/crops/water_1"
+		},
+		"utilitycraft_wither_crop0": {
+			"textures": "textures/blocks/crops/wither_0"
+		},
+		"utilitycraft_wither_crop1": {
+			"textures": "textures/blocks/crops/wither_1"
+		},
+		"utilitycraft_wither_crop2": {
+			"textures": "textures/blocks/crops/wither_2"
+		},
+		"utilitycraft_wither_crop3": {
+			"textures": "textures/blocks/crops/wither_3"
+		},
+		"utilitycraft_wither_crop4": {
+			"textures": "textures/blocks/crops/wither_4"
+		},
+		"utilitycraft_wither_crop5": {
+			"textures": "textures/blocks/crops/wither_5"
+		},
+		"utilitycraft_wool_crop0": {
+			"textures": "textures/blocks/crops/wool_0"
+		},
+		"utilitycraft_wool_crop1": {
+			"textures": "textures/blocks/crops/wool_1"
+		},
+		"utilitycraft_yellow_soil": {
+			"textures": "textures/blocks/crops/soil_1"
+		},
+		"utilitycraft_yellow_soil_side": {
+			"textures": "textures/blocks/crops/soil_side_1"
+		},
+		"utilitycraft_red_soil": {
+			"textures": "textures/blocks/crops/soil_2"
+		},
+		"utilitycraft_red_soil_side": {
+			"textures": "textures/blocks/crops/soil_side_2"
+		},
+		"utilitycraft_blue_soil": {
+			"textures": "textures/blocks/crops/soil_3"
+		},
+		"utilitycraft_blue_soil_side": {
+			"textures": "textures/blocks/crops/soil_side_3"
+		},
+		"utilitycraft_black_soil": {
+			"textures": "textures/blocks/crops/soil_4"
+		},
+		"utilitycraft_black_soil_side": {
+			"textures": "textures/blocks/crops/soil_side_4"
+		},
+		"utilitycraft_pedestal": {
+			"textures": "textures/blocks/utility/pedestal"
+		}
+	}
+}
