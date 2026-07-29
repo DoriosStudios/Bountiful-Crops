@@ -28,6 +28,7 @@
           ]
         },
         "decorative": {
+          "animations": ["decorative_max"],
           "transitions": [
             { "default": "!q.property('dorios:is_slimed')" }
           ]

@@ -19,6 +19,14 @@
           }
         }
       }
+    },
+    "animation.bountiful_crops_bonsai.decorative_max": {
+      "loop": true,
+      "bones": {
+        "tree": {
+          "scale": [7.5, 7.5, 7.5]
+        }
+      }
     }
   }
 }

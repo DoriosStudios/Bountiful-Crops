@@ -379,7 +379,8 @@ function createBonsaiClientEntity(identifier, geometry, texture) {
         render_controllers: ["controller.render.default"],
         animations: {
           controller: "controller.animation.bountiful_crops_bonsai_dynamic",
-          grow_dynamic: "animation.bountiful_crops_bonsai.grow_dynamic"
+          grow_dynamic: "animation.bountiful_crops_bonsai.grow_dynamic",
+          decorative_max: "animation.bountiful_crops_bonsai.decorative_max"
         },
         scripts: { animate: ["controller"] }
       }
