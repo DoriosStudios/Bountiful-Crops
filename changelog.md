@@ -1,3 +1,10 @@
+# Bountiful Crops v1.1.1
+
+## CHANGED
+- Removed the 32 obsolete `*_crop` compatibility blocks and their runtime migration component, leaving only the functional `*_seeds` crop blocks.
+
+---
+
 # Bountiful Crops v1.1.0
 
 This update rebalances Bountiful Crops, adds area-based crop acceleration, and introduces native compatibility with Bountiful Bonsais.

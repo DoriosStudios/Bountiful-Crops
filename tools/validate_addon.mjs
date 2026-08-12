@@ -58,7 +58,6 @@ for (const [path, document] of documents) {
 
 const requiredIds = [
     ...crops.flatMap(crop => [
-        crop.cropId,
         crop.seedId,
         `bountiful_crops:${crop.key}_bonsai`
     ]),
@@ -100,25 +99,10 @@ for (const crop of crops) {
         errors.push(`Seed ${crop.seedId} has an invalid creative group namespace`)
     }
 
-    const legacyBlock = blockDefinitions.get(crop.cropId)
     const canonicalBlock = blockDefinitions.get(crop.seedId)
-    if (!legacyBlock) errors.push(`Missing legacy crop block ${crop.cropId}`)
     if (!canonicalBlock) errors.push(`Missing canonical crop block ${crop.seedId}`)
 
-    const legacyComponents = legacyBlock?.components ?? {}
     const canonicalComponents = canonicalBlock?.components ?? {}
-    if (Object.hasOwn(legacyComponents, "utilitycraft:crop")) {
-        errors.push(`Legacy crop ${crop.cropId} still has the growth component`)
-    }
-    if (!Object.hasOwn(legacyComponents, "utilitycraft:retrocompatibility")) {
-        errors.push(`Legacy crop ${crop.cropId} is missing retrocompatibility`)
-    }
-    if (legacyComponents["utilitycraft:retrocompatibility"]?.target !== crop.seedId) {
-        errors.push(`Legacy crop ${crop.cropId} has the wrong migration target`)
-    }
-    if (JSON.stringify(legacyComponents["minecraft:tick"]?.interval_range) !== "[100,100]") {
-        errors.push(`Legacy crop ${crop.cropId} must tick every 100 ticks`)
-    }
     if (!Object.hasOwn(canonicalComponents, "utilitycraft:crop")) {
         errors.push(`Canonical crop ${crop.seedId} is missing the growth component`)
     }
@@ -129,14 +113,16 @@ for (const crop of crops) {
     if (JSON.stringify(canonicalComponents["minecraft:tick"]?.interval_range) !== JSON.stringify(expectedGrowthInterval)) {
         errors.push(`Canonical crop ${crop.seedId} has an invalid growth interval`)
     }
-    if (JSON.stringify(legacyBlock?.description?.states) !== JSON.stringify(canonicalBlock?.description?.states)) {
-        errors.push(`Crop state definitions differ between ${crop.cropId} and ${crop.seedId}`)
-    }
-
     for (const drop of crop.drops ?? []) {
         if (drop.item.startsWith("utilitycraft:") && !identifiers.has(drop.item)) {
-            errors.push(`Missing custom drop ${drop.item} for ${crop.cropId}`)
+            errors.push(`Missing custom drop ${drop.item} for ${crop.seedId}`)
         }
+    }
+}
+
+for (const identifier of blockDefinitions.keys()) {
+    if (/^utilitycraft:.*_crop$/.test(identifier)) {
+        errors.push(`Obsolete crop block remains: ${identifier}`)
     }
 }
 
@@ -194,6 +180,9 @@ const allText = (await Promise.all(
         .map(path => readFile(path, "utf8"))
 )).join("\n")
 if (allText.includes("twm:")) errors.push("Legacy twm: identifiers remain in the rebuilt add-on")
+if (allText.includes("utilitycraft:retrocompatibility")) {
+    errors.push("Obsolete crop retrocompatibility component remains in the add-on")
+}
 
 const bpManifest = documents.get(join(bpRoot, "manifest.json"))
 const rpManifest = documents.get(join(rpRoot, "manifest.json"))

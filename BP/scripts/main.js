@@ -1,7 +1,6 @@
 import { system } from "@minecraft/server"
 import "./register_bonsais.js"
 import { CROP_COMPONENT } from "./components/crop.js"
-import { RETROCOMPATIBILITY_COMPONENT } from "./components/retrocompatibility.js"
 import {
     INTERACT_COMPONENT,
     PEDESTAL_COMPONENT
@@ -9,10 +8,6 @@ import {
 
 system.beforeEvents.startup.subscribe(({ blockComponentRegistry }) => {
     blockComponentRegistry.registerCustomComponent("utilitycraft:crop", CROP_COMPONENT)
-    blockComponentRegistry.registerCustomComponent(
-        "utilitycraft:retrocompatibility",
-        RETROCOMPATIBILITY_COMPONENT
-    )
     blockComponentRegistry.registerCustomComponent("utilitycraft:interact", INTERACT_COMPONENT)
     blockComponentRegistry.registerCustomComponent("utilitycraft:pedestal", PEDESTAL_COMPONENT)
 })

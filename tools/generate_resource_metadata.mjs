@@ -9,7 +9,6 @@ const cropCatalog = JSON.parse(await readFile(
     "utf8"
 ))
 
-const cropIds = cropCatalog.crops.map(crop => crop.cropId)
 const seedIds = cropCatalog.crops.map(crop => crop.seedId)
 const soilIds = [
     "utilitycraft:yellow_soil",
@@ -38,7 +37,7 @@ const entityIds = [
     "utilitycraft:diamond_accelerator_clock",
     "utilitycraft:nether_star_accelerator_clock"
 ]
-const blockIds = [...cropIds, ...seedIds, ...soilIds, "utilitycraft:pedestal"]
+const blockIds = [...seedIds, ...soilIds, "utilitycraft:pedestal"]
 const translatableIds = new Set([
     ...blockIds,
     ...seedIds,
@@ -67,10 +66,6 @@ await filterAtlas(
 
 const blocksPath = join(projectRoot, "RP", "blocks.json")
 const blocks = parseJsonc(await readFile(blocksPath, "utf8"))
-for (const crop of cropCatalog.crops) {
-    if (!blocks[crop.cropId]) throw new Error(`Missing RP block metadata: ${crop.cropId}`)
-    blocks[crop.seedId] = structuredClone(blocks[crop.cropId])
-}
 const filteredBlocks = { format_version: blocks.format_version }
 for (const identifier of blockIds) {
     if (!blocks[identifier]) throw new Error(`Missing RP block metadata: ${identifier}`)
@@ -110,7 +105,7 @@ for (const language of languages) {
 }
 
 console.log(
-    `Generated resource metadata for ${cropIds.length} crops, ` +
+    `Generated resource metadata for ${seedIds.length} crops, ` +
     `${seedIds.length + utilityItemIds.length} items, and ${blockIds.length} blocks.`
 )
 
