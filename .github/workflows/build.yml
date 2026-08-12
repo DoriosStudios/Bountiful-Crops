@@ -41,8 +41,14 @@ jobs:
         run: npm ci
 
       - name: Install Regolith
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -L https://github.com/Bedrock-OSS/regolith/releases/download/1.8.0/regolith_1.8.0_linux_amd64.tar.gz -o regolith.tar.gz
+          gh release download 1.8.0 \
+            --repo Bedrock-OSS/regolith \
+            --pattern "regolith_1.8.0_linux_amd64.tar.gz" \
+            --output regolith.tar.gz \
+            --clobber
           tar -xzf regolith.tar.gz
           sudo mv regolith /usr/local/bin/regolith
           regolith --version
