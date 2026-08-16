@@ -1,5 +1,10 @@
 # Bountiful Crops v1.1.1
 
+This update removes obsolete compatibility blocks and leaves the functional seed-based crops as the single supported implementation.
+
+## HIGHLIGHTS
+- Removed 32 obsolete compatibility blocks and their runtime migration component.
+
 ## CHANGED
 - Removed the 32 obsolete `*_crop` compatibility blocks and their runtime migration component, leaving only the functional `*_seeds` crop blocks.
 

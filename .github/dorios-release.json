@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DoriosStudios/Dorios-Workflows/v1.0.2/releases/schemas/project.schema.json",
+  "schemaVersion": 1,
+  "project": {
+    "name": "Bountiful Crops",
+    "slug": "crops"
+  },
+  "release": {
+    "changelogPath": "changelog.md",
+    "defaultChannel": "stable",
+    "bedrockManifestPaths": [
+      "BP/manifest.json",
+      "RP/manifest.json"
+    ]
+  },
+  "build": {
+    "enabled": true,
+    "type": "regolith",
+    "developmentProfile": "buildDev",
+    "releaseProfile": "buildMinify",
+    "outputDirectory": "build",
+    "packDirectories": [
+      "Bountiful Crops BP",
+      "Bountiful Crops RP"
+    ]
+  },
+  "distribution": {
+    "github": true,
+    "curseforge": {
+      "enabled": true,
+      "projectId": 1097197,
+      "gameVersion": "26.30"
+    }
+  },
+  "links": {
+    "website": "https://doriosstudios.com/projects/crops/",
+    "curseforge": "https://www.curseforge.com/minecraft-bedrock/addons/bountiful-crops",
+    "mcpedl": "https://mcpedl.com/bountiful-crops/"
+  },
+  "announcement": {
+    "enabled": true,
+    "color": "B0D0F0",
+    "imageUrl": "https://doriosstudios.com/img/addons/crops/MCPEDL.png",
+    "automaticDelayMinutes": 60
+  }
+}
