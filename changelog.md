@@ -1,3 +1,13 @@
+# Bountiful Crops v1.1.2
+
+This update makes crop progression requirements clearer directly in seed and soil tooltips.
+
+## CHANGED
+- Seed tooltips now show which soil tier they require while preserving each tier's existing color.
+- Soil tooltips now show which seed tier they support.
+
+---
+
 # Bountiful Crops v1.1.1
 
 This update removes obsolete compatibility blocks and leaves the functional seed-based crops as the single supported implementation.
